@@ -1,21 +1,27 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-
-// Pages (vamos criar em seguida)
-const Dashboard = () => <div>Dashboard</div>;
-const Usuarios = () => <div>Usuários</div>;
-const Recipientes = () => <div>Recipientes</div>;
-const Dispositivos = () => <div>Dispositivos</div>;
-const Lembretes = () => <div>Lembretes</div>;
+import { SelecionarUsuario } from './pages/SelecionarUsuario';
+import { LoadingSpinner } from './components/LoadingSpinner';
+import { Dashboard } from './pages/Dashboard';
+import { Perfil } from './pages/Perfil';
+import { useUser } from './hooks/useApi';
+import { Recipientes } from './pages/Recipientes';
+import { Dispositivos } from './pages/Dispositivos';
+import { Lembretes } from './pages/Lembretes';
 
 function App() {
+  const { usuarioId, loading } = useUser();
+
+  if (loading) return <LoadingSpinner message="Carregando..." />;
+  if (!usuarioId) return <SelecionarUsuario />;
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/usuarios" element={<Usuarios />} />
       <Route path="/recipientes" element={<Recipientes />} />
       <Route path="/dispositivos" element={<Dispositivos />} />
       <Route path="/lembretes" element={<Lembretes />} />
+      <Route path="/perfil" element={<Perfil />} />
     </Routes>
   );
 }
