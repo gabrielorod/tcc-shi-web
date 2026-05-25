@@ -12,8 +12,27 @@ function getSocket(): Socket {
   return socket;
 }
 
-export function useHidratacaoSocket(onGole: (quantidadeMl: number) => void) {
-  const handleGole = useCallback((quantidadeMl: number) => onGole(quantidadeMl), [onGole]);
+interface HidratacaoSocketCallbacks {
+  onGole?: (quantidadeMl: number) => void;
+  onAlerta?: (mensagem: string) => void;
+  onCalibracaoStatus?: (status: string) => void;
+}
+
+export function useHidratacaoSocket(callbacks: HidratacaoSocketCallbacks) {
+  const handleGole = useCallback(
+    (quantidadeMl: number) => callbacks.onGole?.(quantidadeMl),
+    [callbacks],
+  );
+
+  const handleAlerta = useCallback(
+    (mensagem: string) => callbacks.onAlerta?.(mensagem),
+    [callbacks],
+  );
+
+  const handleCalibracaoStatus = useCallback(
+    (status: string) => callbacks.onCalibracaoStatus?.(status),
+    [callbacks],
+  );
 
   useEffect(() => {
     const s = getSocket();
@@ -22,8 +41,18 @@ export function useHidratacaoSocket(onGole: (quantidadeMl: number) => void) {
       handleGole(data.quantidadeMl);
     });
 
+    s.on('alerta_hidratacao', (data: { mensagem: string }) => {
+      handleAlerta(data.mensagem);
+    });
+
+    s.on('calibracao_status', (data: { status: string }) => {
+      handleCalibracaoStatus(data.status);
+    });
+
     return () => {
       s.off('gole_registrado');
+      s.off('alerta_hidratacao');
+      s.off('calibracao_status');
     };
-  }, [handleGole]);
+  }, [handleGole, handleAlerta, handleCalibracaoStatus]);
 }

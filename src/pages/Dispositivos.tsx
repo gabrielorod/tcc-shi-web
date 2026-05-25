@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Stack, Typography, Alert } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import { Box, Button, Stack, Alert } from '@mui/material';
 import DevicesIcon from '@mui/icons-material/Devices';
+import PersonIcon from '@mui/icons-material/Person';
 import { Layout } from '../components/Layout';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorAlert } from '../components/ErrorAlert';
 import { EmptyState } from '../components/EmptyState';
 import { DispositivoInfo } from '../components/dispositivos/DispositivoInfo';
 import { SelecionarRecipienteCard } from '../components/dispositivos/SelecionarRecipienteCard';
+import { VincularDispositivoCard } from '../components/dispositivos/VincularDispositivoCard';
+import { ConfiguracoesCard } from '../components/dispositivos/ConfiguracoesCard';
 import { dispositivosService } from '../services/dispositivosService';
 import { recipientesService } from '../services/recipientesService';
 import type { Dispositivo, Recipiente } from '../types';
@@ -20,22 +22,23 @@ export function Dispositivos() {
 
   const [dispositivo, setDispositivo] = useState<Dispositivo | null>(null);
   const [recipientes, setRecipientes] = useState<Recipiente[]>([]);
-  const [recipienteAtivo, setRecipienteAtivo] = useState<Recipiente | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [criando, setCriando] = useState(false);
-  const [sucesso, setSucesso] = useState(false);
+  const [sucesso, setSucesso] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const reload = () => setRefreshKey((k) => k + 1);
 
   useEffect(() => {
     if (!usuarioId) return;
-
     let cancelled = false;
 
-    const run = async () => {
+    async function carregar() {
       setLoading(true);
       setError(null);
+
       try {
-        const recRes = await recipientesService.listar(usuarioId);
+        const recRes = await recipientesService.listar(usuarioId!);
         if (cancelled) return;
         setRecipientes(recRes.data);
 
@@ -43,12 +46,7 @@ export function Dispositivos() {
         if (dispositivoId) {
           try {
             const res = await dispositivosService.buscar(dispositivoId);
-            if (cancelled) return;
-            setDispositivo(res.data);
-            if (res.data.recipienteAtivoId) {
-              const ativo = recRes.data.find((r) => r.id === res.data.recipienteAtivoId) ?? null;
-              setRecipienteAtivo(ativo);
-            }
+            if (!cancelled) setDispositivo(res.data);
           } catch {
             localStorage.removeItem(DISPOSITIVO_KEY);
             if (!cancelled) setDispositivo(null);
@@ -59,81 +57,136 @@ export function Dispositivos() {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    };
+    }
 
-    void run();
+    void carregar();
     return () => {
       cancelled = true;
     };
-  }, [usuarioId]);
+  }, [usuarioId, refreshKey]);
 
-  const handleCriarDispositivo = async () => {
-    setCriando(true);
-    setError(null);
-    try {
-      const res = await dispositivosService.criar(usuarioId!);
-      localStorage.setItem(DISPOSITIVO_KEY, res.data.id);
-      setDispositivo(res.data);
-    } catch {
-      setError('Erro ao registrar dispositivo');
-    } finally {
-      setCriando(false);
-    }
+  const mostrarSucesso = (msg: string) => {
+    setSucesso(msg);
+    setTimeout(() => setSucesso(null), 3000);
+  };
+
+  const handleVincular = async (token: string) => {
+    const res = await dispositivosService.vincular(token, usuarioId!);
+    localStorage.setItem(DISPOSITIVO_KEY, res.data.id);
+    setDispositivo(res.data);
+    mostrarSucesso('Dispositivo vinculado com sucesso!');
+  };
+
+  const handleUsarAgora = async () => {
+    if (!dispositivo) return;
+    const res = await dispositivosService.usarAgora(dispositivo.id, usuarioId!);
+    setDispositivo(res.data);
+    mostrarSucesso('Você agora é o usuário ativo neste dispositivo!');
   };
 
   const handleSelecionarRecipiente = async (recipienteId: string) => {
     if (!dispositivo) return;
     const res = await dispositivosService.selecionarRecipiente(dispositivo.id, recipienteId);
     setDispositivo(res.data);
-    const ativo = recipientes.find((r) => r.id === recipienteId) ?? null;
-    setRecipienteAtivo(ativo);
-    setSucesso(true);
-    setTimeout(() => setSucesso(false), 3000);
+    mostrarSucesso('Recipiente selecionado! A balança está pronta para uso.');
   };
+
+  const handleAtualizarConfiguracoes = async (gracePeriodMinutos: number) => {
+    if (!dispositivo) return;
+    const res = await dispositivosService.atualizarConfiguracoes(
+      dispositivo.id,
+      gracePeriodMinutos,
+    );
+    setDispositivo(res.data);
+  };
+
+  const isUsuarioAtivo = dispositivo?.usuarioAtivoId === usuarioId;
 
   return (
     <Layout title="Dispositivo">
       {loading && <LoadingSpinner message="Carregando dispositivo..." />}
       {error && <ErrorAlert message={error} />}
 
+      {sucesso && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {sucesso}
+        </Alert>
+      )}
+
       {!loading && !dispositivo && (
         <EmptyState
           icon={<DevicesIcon sx={{ fontSize: 64 }} />}
-          title="Nenhum dispositivo registrado"
-          description="Registre seu ESP32 para começar a monitorar sua hidratação automaticamente"
+          title="Nenhum dispositivo vinculado"
+          description="Digite o token gravado no firmware do ESP32 para vincular seu dispositivo"
           action={
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => void handleCriarDispositivo()}
-              disabled={criando}
-            >
-              {criando ? 'Registrando...' : 'Registrar dispositivo'}
-            </Button>
+            <Box sx={{ width: '100%', maxWidth: 400 }}>
+              <VincularDispositivoCard onVincular={handleVincular} />
+            </Box>
           }
         />
       )}
 
       {!loading && dispositivo && (
         <Stack spacing={2}>
-          {sucesso && (
-            <Alert severity="success">
-              Recipiente selecionado com sucesso! A balança já está pronta para uso.
+          <DispositivoInfo
+            dispositivo={dispositivo}
+            recipienteAtivo={dispositivo.recipienteAtivo ?? null}
+          />
+
+          {/* Botão "Usar agora" se não for o usuário ativo */}
+          {!isUsuarioAtivo && (
+            <Alert
+              severity="info"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  startIcon={<PersonIcon />}
+                  onClick={() => void handleUsarAgora()}
+                >
+                  Usar agora
+                </Button>
+              }
+            >
+              {dispositivo.usuarioAtivo
+                ? `${dispositivo.usuarioAtivo.nome} está usando este dispositivo`
+                : 'Nenhum usuário ativo neste dispositivo'}
             </Alert>
           )}
 
-          <DispositivoInfo dispositivo={dispositivo} recipienteAtivo={recipienteAtivo} />
+          {isUsuarioAtivo && (
+            <>
+              <SelecionarRecipienteCard
+                recipientes={recipientes}
+                recipienteAtivoId={dispositivo.recipienteAtivoId}
+                onSalvar={handleSelecionarRecipiente}
+              />
+              <ConfiguracoesCard
+                gracePeriodMinutos={dispositivo.gracePeriodMinutos}
+                onSalvar={handleAtualizarConfiguracoes}
+              />
+            </>
+          )}
 
-          <SelecionarRecipienteCard
-            recipientes={recipientes}
-            recipienteAtivoId={dispositivo.recipienteAtivoId}
-            onSalvar={handleSelecionarRecipiente}
+          <VincularDispositivoCard
+            onVincular={async (token) => {
+              await handleVincular(token);
+              reload();
+            }}
           />
 
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-              ID do dispositivo: {dispositivo.id}
-            </Typography>
+            <Button
+              variant="text"
+              size="small"
+              sx={{ color: 'text.disabled' }}
+              onClick={() => {
+                localStorage.removeItem(DISPOSITIVO_KEY);
+                setDispositivo(null);
+              }}
+            >
+              Desvincular dispositivo
+            </Button>
           </Box>
         </Stack>
       )}

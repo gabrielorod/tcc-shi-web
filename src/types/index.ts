@@ -21,11 +21,14 @@ export interface Recipiente {
 
 export interface Dispositivo {
   id: string;
-  usuarioId: string;
-  recipienteAtivoId: string | null;
   tokenAcesso: string;
+  usuarioAtivoId: string | null;
+  recipienteAtivoId: string | null;
+  recipienteAtivo?: Recipiente | null;
+  usuarioAtivo?: Usuario | null;
   pesoAtualNaMesaG: number;
   ultimoPingEm: string | null;
+  gracePeriodMinutos: number;
   criadoEm: string;
 }
 
@@ -38,15 +41,6 @@ export interface LogHidratacao {
   pesoAntesG: number;
   pesoDepoisG: number;
   registradoEm: string;
-}
-
-export interface Lembrete {
-  id: string;
-  usuarioId: string;
-  intervaloMinutos: number;
-  ativo: boolean;
-  ultimoAlertaEm: string | null;
-  criadoEm: string;
 }
 
 export interface DashboardHidratacao {

@@ -19,14 +19,12 @@ import {
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LocalDrinkIcon from '@mui/icons-material/LocalDrink';
 import DevicesIcon from '@mui/icons-material/Devices';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { label: 'Recipientes', icon: <LocalDrinkIcon />, path: '/recipientes' },
   { label: 'Dispositivo', icon: <DevicesIcon />, path: '/dispositivos' },
-  { label: 'Lembretes', icon: <NotificationsIcon />, path: '/lembretes' },
   { label: 'Perfil', icon: <PersonIcon />, path: '/perfil' },
 ];
 

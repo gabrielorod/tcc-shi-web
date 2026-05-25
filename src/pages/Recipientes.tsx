@@ -54,10 +54,7 @@ export function Recipientes() {
     reload();
   };
 
-  const handleCalibrar = async (id: string, pesoVazioG: number) => {
-    await recipientesService.calibrar(id, pesoVazioG);
-    reload();
-  };
+  const [dispositivoId] = useState<string | null>(localStorage.getItem('dispositivoId'));
 
   const handleRemover = async (id: string) => {
     try {
@@ -115,8 +112,13 @@ export function Recipientes() {
       )}
 
       <DialogCalibrar
+        key={recipienteParaCalibrar?.id ?? 'closed'}
         recipiente={recipienteParaCalibrar}
-        onConfirmar={handleCalibrar}
+        dispositivoId={dispositivoId}
+        onConcluido={() => {
+          setRecipienteParaCalibrar(null);
+          reload();
+        }}
         onFechar={() => setRecipienteParaCalibrar(null)}
       />
     </Layout>
