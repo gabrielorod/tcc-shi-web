@@ -10,6 +10,7 @@ import { RecipienteCard } from '../components/recipientes/RecipienteCard';
 import { FormNovoRecipiente } from '../components/recipientes/FormNovoRecipiente';
 import { DialogCalibrar } from '../components/recipientes/DialogCalibrar';
 import { recipientesService } from '../services/recipientesService';
+import { dispositivosService } from '../services/dispositivosService';
 import type { Recipiente } from '../types';
 import { useUser } from '../hooks/useUser';
 
@@ -22,6 +23,9 @@ export function Recipientes() {
   const [showForm, setShowForm] = useState(false);
   const [recipienteParaCalibrar, setRecipienteParaCalibrar] = useState<Recipiente | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isUsuarioAtivo, setIsUsuarioAtivo] = useState(false);
+
+  const dispositivoId = localStorage.getItem(`dispositivoId_${usuarioId ?? ''}`);
 
   const reload = () => setRefreshKey((k) => k + 1);
 
@@ -48,15 +52,24 @@ export function Recipientes() {
     };
   }, [usuarioId, refreshKey]);
 
+  useEffect(() => {
+    if (!dispositivoId || !usuarioId) return;
+
+    dispositivosService
+      .buscar(dispositivoId)
+      .then((res) => {
+        setIsUsuarioAtivo(res.data.usuarioAtivoId === usuarioId);
+      })
+      .catch(() => {
+        setIsUsuarioAtivo(false);
+      });
+  }, [dispositivoId, usuarioId, refreshKey]);
+
   const handleCriar = async (data: { nome: string; tipo: string }) => {
     await recipientesService.criar({ ...data, usuarioId: usuarioId! });
     setShowForm(false);
     reload();
   };
-
-  const [dispositivoId] = useState<string | null>(
-    localStorage.getItem(`dispositivoId_${usuarioId ?? ''}`),
-  );
 
   const handleRemover = async (id: string) => {
     try {
@@ -117,6 +130,7 @@ export function Recipientes() {
         key={recipienteParaCalibrar?.id ?? 'closed'}
         recipiente={recipienteParaCalibrar}
         dispositivoId={dispositivoId}
+        isUsuarioAtivo={isUsuarioAtivo}
         onConcluido={() => {
           setRecipienteParaCalibrar(null);
           reload();

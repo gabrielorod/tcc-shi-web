@@ -22,6 +22,7 @@ type StatusCalibracao = 'idle' | 'aguardando' | 'lendo' | 'concluido' | 'erro';
 interface DialogCalibrarProps {
   recipiente: Recipiente | null;
   dispositivoId: string | null;
+  isUsuarioAtivo: boolean;
   onConcluido: () => void;
   onFechar: () => void;
 }
@@ -29,6 +30,7 @@ interface DialogCalibrarProps {
 export function DialogCalibrar({
   recipiente,
   dispositivoId,
+  isUsuarioAtivo,
   onConcluido,
   onFechar,
 }: DialogCalibrarProps) {
@@ -51,6 +53,14 @@ export function DialogCalibrar({
     if (!dispositivoId) {
       setStatus('erro');
       setMensagem('Nenhum dispositivo vinculado. Vá em Dispositivo e vincule primeiro.');
+      return;
+    }
+
+    if (!isUsuarioAtivo) {
+      setStatus('erro');
+      setMensagem(
+        'Você não é o usuário ativo neste dispositivo. Vá em Dispositivo e clique em "Usar agora".',
+      );
       return;
     }
 

@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Stack, Alert } from '@mui/material';
+import {
+  Box,
+  Button,
+  Stack,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from '@mui/material';
 import DevicesIcon from '@mui/icons-material/Devices';
 import PersonIcon from '@mui/icons-material/Person';
 import { Layout } from '../components/Layout';
@@ -16,6 +26,7 @@ import type { Dispositivo, Recipiente } from '../types';
 import { useUser } from '../hooks/useUser';
 import { DialogCalibrarBalanca } from '../components/dispositivos/DialogCalibrarBalanca';
 import ScaleIcon from '@mui/icons-material/Scale';
+import RestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 
 const getDispositivoKey = (usuarioId: string) => `dispositivoId_${usuarioId}`;
 
@@ -29,6 +40,7 @@ export function Dispositivos() {
   const [sucesso, setSucesso] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [calibrarBalancaAberto, setCalibrarBalancaAberto] = useState(false);
+  const [resetDialogAberto, setResetDialogAberto] = useState(false);
 
   const reload = () => setRefreshKey((k) => k + 1);
 
@@ -73,6 +85,13 @@ export function Dispositivos() {
     setTimeout(() => setSucesso(null), 3000);
   };
 
+  const handleResetBalanca = async () => {
+    if (!dispositivo) return;
+    await dispositivosService.enviarComando(dispositivo.id, 'restore');
+    setResetDialogAberto(false);
+    mostrarSucesso('Comando de reset enviado para a balança!');
+  };
+
   const handleVincular = async (token: string) => {
     const res = await dispositivosService.vincular(token, usuarioId!);
     localStorage.setItem(getDispositivoKey(usuarioId!), res.data.id);
@@ -84,6 +103,10 @@ export function Dispositivos() {
     if (!dispositivo) return;
     const res = await dispositivosService.usarAgora(dispositivo.id, usuarioId!);
     setDispositivo(res.data);
+
+    const recRes = await recipientesService.listar(usuarioId!);
+    setRecipientes(recRes.data);
+
     mostrarSucesso('Você agora é o usuário ativo neste dispositivo!');
   };
 
@@ -193,6 +216,16 @@ export function Dispositivos() {
               >
                 Calibrar balança
               </Button>
+
+              <Button
+                fullWidth
+                variant="outlined"
+                color="error"
+                startIcon={<RestoreIcon />}
+                onClick={() => setResetDialogAberto(true)}
+              >
+                Resetar balança
+              </Button>
             </>
           )}
 
@@ -219,6 +252,22 @@ export function Dispositivos() {
           onFechar={() => setCalibrarBalancaAberto(false)}
         />
       )}
+
+      <Dialog open={resetDialogAberto} onClose={() => setResetDialogAberto(false)}>
+        <DialogTitle>Resetar balança?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Isso vai apagar todas as configurações da balança (calibração, WiFi, dados de
+            hidratação) e ela vai reiniciar. Esta ação não pode ser desfeita.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setResetDialogAberto(false)}>Cancelar</Button>
+          <Button color="error" onClick={() => void handleResetBalanca()}>
+            Resetar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Layout>
   );
 }
