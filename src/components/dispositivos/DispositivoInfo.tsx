@@ -22,7 +22,7 @@ function formatarData(data: string | null): string {
 function isOnline(ultimoPingEm: string | null): boolean {
   if (!ultimoPingEm) return false;
   const diff = Date.now() - new Date(ultimoPingEm).getTime();
-  return diff < 60000; // Online se pingou nos últimos 60 segundos
+  return diff < 300000;
 }
 
 export function DispositivoInfo({ dispositivo, recipienteAtivo }: DispositivoInfoProps) {
