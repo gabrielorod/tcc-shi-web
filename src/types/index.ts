@@ -29,6 +29,8 @@ export interface Dispositivo {
   pesoAtualNaMesaG: number;
   ultimoPingEm: string | null;
   gracePeriodMinutos: number;
+  horarioAcordar: number;
+  horarioDormir: number;
   criadoEm: string;
 }
 

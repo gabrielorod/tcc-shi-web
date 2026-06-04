@@ -15,8 +15,17 @@ export const dispositivosService = {
   selecionarRecipiente: (id: string, recipienteId: string) =>
     api.patch<Dispositivo>(`/dispositivos/${id}/recipiente`, { recipienteId }),
 
-  atualizarConfiguracoes: (id: string, gracePeriodMinutos: number) =>
-    api.patch<Dispositivo>(`/dispositivos/${id}/configuracoes`, { gracePeriodMinutos }),
+  atualizarConfiguracoes: (
+    id: string,
+    gracePeriodMinutos: number,
+    horarioAcordar: number,
+    horarioDormir: number,
+  ) =>
+    api.patch<Dispositivo>(`/dispositivos/${id}/configuracoes`, {
+      gracePeriodMinutos,
+      horarioAcordar,
+      horarioDormir,
+    }),
 
   enviarComando: (dispositivoId: string, comando: string, parametro?: string) =>
     api.post('/dispositivos/comando', { dispositivoId, comando, parametro }),

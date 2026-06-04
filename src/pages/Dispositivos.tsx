@@ -91,11 +91,17 @@ export function Dispositivos() {
     mostrarSucesso('Recipiente selecionado! A balança está pronta para uso.');
   };
 
-  const handleAtualizarConfiguracoes = async (gracePeriodMinutos: number) => {
+  const handleAtualizarConfiguracoes = async (
+    gracePeriodMinutos: number,
+    horarioAcordar: number,
+    horarioDormir: number,
+  ) => {
     if (!dispositivo) return;
     const res = await dispositivosService.atualizarConfiguracoes(
       dispositivo.id,
       gracePeriodMinutos,
+      horarioAcordar,
+      horarioDormir,
     );
     setDispositivo(res.data);
   };
@@ -163,7 +169,15 @@ export function Dispositivos() {
               />
               <ConfiguracoesCard
                 gracePeriodMinutos={dispositivo.gracePeriodMinutos}
-                onSalvar={handleAtualizarConfiguracoes}
+                horarioAcordar={dispositivo.horarioAcordar}
+                horarioDormir={dispositivo.horarioDormir}
+                onSalvar={async (gracePeriodMinutos, horarioAcordar, horarioDormir) => {
+                  await handleAtualizarConfiguracoes(
+                    gracePeriodMinutos,
+                    horarioAcordar,
+                    horarioDormir,
+                  );
+                }}
               />
             </>
           )}

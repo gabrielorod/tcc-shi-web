@@ -1,4 +1,13 @@
-import { Card, CardContent, Typography, TextField, MenuItem, Button, Stack } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  Stack,
+  Grid,
+} from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useState } from 'react';
 
@@ -13,11 +22,24 @@ const INTERVALOS = [
 
 interface ConfiguracoesCardProps {
   gracePeriodMinutos: number;
-  onSalvar: (gracePeriodMinutos: number) => Promise<void>;
+  horarioAcordar: number;
+  horarioDormir: number;
+  onSalvar: (
+    gracePeriodMinutos: number,
+    horarioAcordar: number,
+    horarioDormir: number,
+  ) => Promise<void>;
 }
 
-export function ConfiguracoesCard({ gracePeriodMinutos, onSalvar }: ConfiguracoesCardProps) {
+export function ConfiguracoesCard({
+  gracePeriodMinutos,
+  horarioAcordar,
+  horarioDormir,
+  onSalvar,
+}: ConfiguracoesCardProps) {
   const [intervalo, setIntervalo] = useState(gracePeriodMinutos);
+  const [acordar, setAcordar] = useState(horarioAcordar);
+  const [dormir, setDormir] = useState(horarioDormir);
   const [submitting, setSubmitting] = useState(false);
   const [sucesso, setSucesso] = useState(false);
 
@@ -25,7 +47,7 @@ export function ConfiguracoesCard({ gracePeriodMinutos, onSalvar }: Configuracoe
     setSubmitting(true);
     setSucesso(false);
     try {
-      await onSalvar(intervalo);
+      await onSalvar(intervalo, acordar, dormir);
       setSucesso(true);
       setTimeout(() => setSucesso(false), 3000);
     } finally {
@@ -33,18 +55,29 @@ export function ConfiguracoesCard({ gracePeriodMinutos, onSalvar }: Configuracoe
     }
   };
 
+  const HORAS = Array.from({ length: 24 }, (_, i) => ({
+    label: `${String(i).padStart(2, '0')}:00`,
+    value: i,
+  }));
+
   return (
     <Card variant="outlined">
       <CardContent>
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 600, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}
+          sx={{
+            fontWeight: 600,
+            mb: 0.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
         >
           <SettingsIcon fontSize="small" color="primary" />
           Configurações
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-          Se você não beber água nesse período, receberá até 2 alertas
+          Defina quando a balança deve monitorar e alertar sobre sua hidratação
         </Typography>
 
         <Stack spacing={2}>
@@ -61,6 +94,41 @@ export function ConfiguracoesCard({ gracePeriodMinutos, onSalvar }: Configuracoe
               </MenuItem>
             ))}
           </TextField>
+
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 6 }}>
+              <TextField
+                label="Horário de acordar"
+                fullWidth
+                select
+                value={acordar}
+                onChange={(e) => setAcordar(Number(e.target.value))}
+                helperText="Início do monitoramento"
+              >
+                {HORAS.map((h) => (
+                  <MenuItem key={h.value} value={h.value}>
+                    {h.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 6 }}>
+              <TextField
+                label="Horário de dormir"
+                fullWidth
+                select
+                value={dormir}
+                onChange={(e) => setDormir(Number(e.target.value))}
+                helperText="Fim do monitoramento"
+              >
+                {HORAS.map((h) => (
+                  <MenuItem key={h.value} value={h.value}>
+                    {h.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
 
           {sucesso && (
             <Typography sx={{ color: 'success.main', fontWeight: 500 }}>
