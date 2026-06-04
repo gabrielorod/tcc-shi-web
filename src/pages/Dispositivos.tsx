@@ -14,6 +14,8 @@ import { dispositivosService } from '../services/dispositivosService';
 import { recipientesService } from '../services/recipientesService';
 import type { Dispositivo, Recipiente } from '../types';
 import { useUser } from '../hooks/useUser';
+import { DialogCalibrarBalanca } from '../components/dispositivos/DialogCalibrarBalanca';
+import ScaleIcon from '@mui/icons-material/Scale';
 
 const getDispositivoKey = (usuarioId: string) => `dispositivoId_${usuarioId}`;
 
@@ -26,6 +28,7 @@ export function Dispositivos() {
   const [error, setError] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [calibrarBalancaAberto, setCalibrarBalancaAberto] = useState(false);
 
   const reload = () => setRefreshKey((k) => k + 1);
 
@@ -140,23 +143,25 @@ export function Dispositivos() {
           />
 
           {!isUsuarioAtivo && (
-            <Alert
-              severity="info"
-              action={
-                <Button
-                  color="inherit"
-                  size="small"
-                  startIcon={<PersonIcon />}
-                  onClick={() => void handleUsarAgora()}
-                >
-                  Usar agora
-                </Button>
-              }
-            >
-              {dispositivo.usuarioAtivo
-                ? `${dispositivo.usuarioAtivo.nome} está usando este dispositivo`
-                : 'Nenhum usuário ativo neste dispositivo'}
-            </Alert>
+            <>
+              <Alert
+                severity="info"
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    startIcon={<PersonIcon />}
+                    onClick={() => void handleUsarAgora()}
+                  >
+                    Usar agora
+                  </Button>
+                }
+              >
+                {dispositivo.usuarioAtivo
+                  ? `${dispositivo.usuarioAtivo.nome} está usando este dispositivo`
+                  : 'Nenhum usuário ativo neste dispositivo'}
+              </Alert>
+            </>
           )}
 
           {isUsuarioAtivo && (
@@ -178,6 +183,16 @@ export function Dispositivos() {
                   );
                 }}
               />
+
+              <Button
+                fullWidth
+                variant="outlined"
+                color="warning"
+                startIcon={<ScaleIcon />}
+                onClick={() => setCalibrarBalancaAberto(true)}
+              >
+                Calibrar balança
+              </Button>
             </>
           )}
 
@@ -196,6 +211,13 @@ export function Dispositivos() {
             </Button>
           </Box>
         </Stack>
+      )}
+      {dispositivo && (
+        <DialogCalibrarBalanca
+          aberto={calibrarBalancaAberto}
+          dispositivoId={dispositivo.id}
+          onFechar={() => setCalibrarBalancaAberto(false)}
+        />
       )}
     </Layout>
   );

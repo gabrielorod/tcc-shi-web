@@ -6,6 +6,9 @@ export const dispositivosService = {
 
   buscar: (id: string) => api.get<Dispositivo>(`/dispositivos/${id}`),
 
+  iniciarCalibracaoBalanca: (id: string, pesoConhecidoG: number) =>
+    api.post(`/dispositivos/${id}/calibrar-balanca`, { pesoConhecidoG }),
+
   vincular: (tokenAcesso: string, usuarioId: string) =>
     api.post<Dispositivo>('/dispositivos/vincular', { tokenAcesso, usuarioId }),
 

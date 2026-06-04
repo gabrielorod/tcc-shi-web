@@ -58,7 +58,7 @@ export function DialogCalibrar({
     setMensagem('Enviando comando ao ESP32...');
 
     try {
-      await dispositivosService.enviarComando(dispositivoId, 'calibrate');
+      await dispositivosService.enviarComando(dispositivoId, 'calibrate', recipiente?.id);
       setStatus('lendo');
       setMensagem('Coloque o recipiente VAZIO na balança e aguarde...');
     } catch {
