@@ -54,7 +54,9 @@ export function Recipientes() {
     reload();
   };
 
-  const [dispositivoId] = useState<string | null>(localStorage.getItem('dispositivoId'));
+  const [dispositivoId] = useState<string | null>(
+    localStorage.getItem(`dispositivoId_${usuarioId ?? ''}`),
+  );
 
   const handleRemover = async (id: string) => {
     try {
