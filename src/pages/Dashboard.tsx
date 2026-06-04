@@ -12,7 +12,7 @@ import { ResumoCard } from '../components/dashboard/ResumoCard';
 import { UltimosGoles } from '../components/dashboard/UltimosGoles';
 import { useDashboard } from '../hooks/useDashboard';
 import { useHidratacaoSocket } from '../hooks/useHidratacaoSocket';
-import { useUser } from '../hooks/useApi';
+import { useUser } from '../hooks/useUser';
 
 export function Dashboard() {
   const { usuarioId, usuario } = useUser();

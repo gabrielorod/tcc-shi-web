@@ -18,7 +18,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorAlert } from '../components/ErrorAlert';
 import type { Usuario } from '../types';
 import api from '../services/api';
-import { useUser } from '../hooks/useApi';
+import { useUser } from '../hooks/useUser';
 
 interface FormData {
   nome: string;

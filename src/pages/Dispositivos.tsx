@@ -13,9 +13,9 @@ import { ConfiguracoesCard } from '../components/dispositivos/ConfiguracoesCard'
 import { dispositivosService } from '../services/dispositivosService';
 import { recipientesService } from '../services/recipientesService';
 import type { Dispositivo, Recipiente } from '../types';
-import { useUser } from '../hooks/useApi';
+import { useUser } from '../hooks/useUser';
 
-const DISPOSITIVO_KEY = 'dispositivoId';
+const getDispositivoKey = (usuarioId: string) => `dispositivoId_${usuarioId}`;
 
 export function Dispositivos() {
   const { usuarioId } = useUser();
@@ -42,13 +42,13 @@ export function Dispositivos() {
         if (cancelled) return;
         setRecipientes(recRes.data);
 
-        const dispositivoId = localStorage.getItem(DISPOSITIVO_KEY);
+        const dispositivoId = localStorage.getItem(getDispositivoKey(usuarioId!));
         if (dispositivoId) {
           try {
             const res = await dispositivosService.buscar(dispositivoId);
             if (!cancelled) setDispositivo(res.data);
           } catch {
-            localStorage.removeItem(DISPOSITIVO_KEY);
+            localStorage.removeItem(getDispositivoKey(usuarioId!));
             if (!cancelled) setDispositivo(null);
           }
         }
@@ -72,7 +72,7 @@ export function Dispositivos() {
 
   const handleVincular = async (token: string) => {
     const res = await dispositivosService.vincular(token, usuarioId!);
-    localStorage.setItem(DISPOSITIVO_KEY, res.data.id);
+    localStorage.setItem(getDispositivoKey(usuarioId!), res.data.id);
     setDispositivo(res.data);
     mostrarSucesso('Dispositivo vinculado com sucesso!');
   };
@@ -139,7 +139,6 @@ export function Dispositivos() {
             recipienteAtivo={dispositivo.recipienteAtivo ?? null}
           />
 
-          {/* Botão "Usar agora" se não for o usuário ativo */}
           {!isUsuarioAtivo && (
             <Alert
               severity="info"
@@ -182,24 +181,18 @@ export function Dispositivos() {
             </>
           )}
 
-          <VincularDispositivoCard
-            onVincular={async (token) => {
-              await handleVincular(token);
-              reload();
-            }}
-          />
-
           <Box sx={{ textAlign: 'center' }}>
             <Button
               variant="text"
               size="small"
-              sx={{ color: 'text.disabled' }}
+              sx={{ color: 'text.secondary' }}
               onClick={() => {
-                localStorage.removeItem(DISPOSITIVO_KEY);
+                localStorage.removeItem(getDispositivoKey(usuarioId!));
                 setDispositivo(null);
+                reload();
               }}
             >
-              Desvincular dispositivo
+              Vincular outro dispositivo
             </Button>
           </Box>
         </Stack>

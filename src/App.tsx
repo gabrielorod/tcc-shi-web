@@ -5,7 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Perfil } from './pages/Perfil';
 import { Recipientes } from './pages/Recipientes';
 import { Dispositivos } from './pages/Dispositivos';
-import { useUser } from './hooks/useApi';
+import { useUser } from './hooks/useUser';
 
 function App() {
   const { usuarioId, loading } = useUser();

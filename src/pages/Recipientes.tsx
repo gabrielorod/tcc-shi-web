@@ -11,7 +11,7 @@ import { FormNovoRecipiente } from '../components/recipientes/FormNovoRecipiente
 import { DialogCalibrar } from '../components/recipientes/DialogCalibrar';
 import { recipientesService } from '../services/recipientesService';
 import type { Recipiente } from '../types';
-import { useUser } from '../hooks/useApi';
+import { useUser } from '../hooks/useUser';
 
 export function Recipientes() {
   const { usuarioId } = useUser();
