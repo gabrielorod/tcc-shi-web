@@ -32,6 +32,7 @@ export function SelecionarRecipienteCard({
 
     try {
       await onSalvar(selecionado);
+      setSubmitting(false);
     } catch {
       setError('Erro ao selecionar recipiente. Verifique se ele está calibrado.');
       setSubmitting(false);

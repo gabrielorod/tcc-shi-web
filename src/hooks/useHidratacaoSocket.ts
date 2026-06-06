@@ -16,6 +16,7 @@ interface HidratacaoSocketCallbacks {
   onGole?: (quantidadeMl: number) => void;
   onAlerta?: (mensagem: string) => void;
   onCalibracaoStatus?: (status: string) => void;
+  onPesoRealTime?: (pesoAtual: number) => void;
 }
 
 export function useHidratacaoSocket(callbacks: HidratacaoSocketCallbacks) {
@@ -45,6 +46,10 @@ export function useHidratacaoSocket(callbacks: HidratacaoSocketCallbacks) {
       handleAlerta(data.mensagem);
     });
 
+    s.on('peso_em_tempo_real', (data: { pesoAtual: number }) => {
+      callbacks.onPesoRealTime?.(data.pesoAtual);
+    });
+
     s.on('calibracao_status', (data: { status: string }) => {
       handleCalibracaoStatus(data.status);
     });
@@ -52,7 +57,8 @@ export function useHidratacaoSocket(callbacks: HidratacaoSocketCallbacks) {
     return () => {
       s.off('gole_registrado');
       s.off('alerta_hidratacao');
+      s.off('peso_em_tempo_real');
       s.off('calibracao_status');
     };
-  }, [handleGole, handleAlerta, handleCalibracaoStatus]);
+  }, [handleGole, handleAlerta, handleCalibracaoStatus, callbacks]);
 }

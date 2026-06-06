@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Card, CardContent, Box, Typography, Chip, Divider, Stack } from '@mui/material';
 import DevicesIcon from '@mui/icons-material/Devices';
 import WifiIcon from '@mui/icons-material/Wifi';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
 import type { Dispositivo, Recipiente } from '../../types';
+import { useHidratacaoSocket } from '../../hooks/useHidratacaoSocket';
 
 interface DispositivoInfoProps {
   dispositivo: Dispositivo;
@@ -27,6 +29,11 @@ function isOnline(ultimoPingEm: string | null): boolean {
 
 export function DispositivoInfo({ dispositivo, recipienteAtivo }: DispositivoInfoProps) {
   const online = isOnline(dispositivo.ultimoPingEm);
+  const [pesoAtual, setPesoAtual] = useState(dispositivo.pesoAtualNaMesaG);
+
+  useHidratacaoSocket({
+    onPesoRealTime: (peso) => setPesoAtual(peso),
+  });
 
   return (
     <Card elevation={2}>
@@ -81,7 +88,7 @@ export function DispositivoInfo({ dispositivo, recipienteAtivo }: DispositivoInf
               Peso atual na mesa
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {dispositivo.pesoAtualNaMesaG}g
+              {pesoAtual}g
             </Typography>
           </Box>
 

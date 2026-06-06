@@ -51,8 +51,6 @@ export function Perfil() {
 
   if (!usuario) return <LoadingSpinner />;
 
-  const metaSugerida = form.pesoKg ? Math.round(parseFloat(form.pesoKg) * 35) : 0;
-
   const handleSalvar = async () => {
     if (!form.nome || !form.pesoKg || !form.alturaCm || !form.sexo) {
       setError('Preencha todos os campos obrigatórios');
@@ -69,7 +67,7 @@ export function Perfil() {
         pesoKg: parseFloat(form.pesoKg),
         alturaCm: parseFloat(form.alturaCm),
         sexo: form.sexo,
-        metaDiariaMl: parseFloat(form.metaDiariaMl) || metaSugerida,
+        metaDiariaMl: parseFloat(form.metaDiariaMl) || 2000,
       });
 
       setSuccess(true);
@@ -130,9 +128,6 @@ export function Perfil() {
                 type="number"
                 value={form.pesoKg}
                 onChange={(e) => setForm({ ...form, pesoKg: e.target.value })}
-                helperText={
-                  form.pesoKg ? `Meta sugerida pela OMS: ${metaSugerida} ml/dia` : undefined
-                }
               />
               <TextField
                 label="Altura (cm)"
@@ -158,7 +153,7 @@ export function Perfil() {
                 type="number"
                 value={form.metaDiariaMl}
                 onChange={(e) => setForm({ ...form, metaDiariaMl: e.target.value })}
-                helperText="Deixe em branco para usar a meta calculada pelo peso"
+                helperText="Meta padrão recomendada: 2000ml"
               />
 
               <Button
